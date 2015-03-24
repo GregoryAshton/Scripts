@@ -1,0 +1,87 @@
+#!/usr/bin/python
+
+import os
+import subprocess
+from termcolor import colored
+
+class File:
+    def __init__(self, path):
+        self.path = path
+        self.file_name = path.split("/")[-1]
+        self.tracked = False
+        self.modified = False
+
+        self.is_tracked()
+        self.get_status()
+        self.set_status_code()
+        self.set_status_color()
+
+    def is_tracked(self):
+        try:
+            s = subprocess.check_output(
+                    "git ls-files {} --error-unmatch".format(self.path),
+                    stderr=subprocess.STDOUT, shell=True)
+            self.tracked = True
+        except subprocess.CalledProcessError as e:
+            self.tracked=False
+
+    def get_status(self):
+        try:
+            s = subprocess.check_output("git status {}".format(self.path),
+                                        shell=True
+                                        )
+        except subprocess.CalledProcessError as e:
+            print e
+            if "Not a git repository" in e:
+                raise ValueError("This is not a git repository")
+            else:
+                print e
+
+        if "modified" in s:
+            self.modified = True
+        else:
+            self.modified = False
+
+    def set_status_code(self):
+        codes = ['_', '*']
+        self.status = [int(Bool) for Bool in [self.tracked, self.modified]]
+        self.status_string = " ".join([codes[i] for i in self.status])
+
+    def set_status_color(self):
+        status_matrix = [['red', ''], ['green', 'blue']]
+        self.status_color = status_matrix[self.status[0]][self.status[1]]
+
+    def print_status(self):
+        string = "{} : {}".format(self.status_string, self.file_name)
+        print colored(string, self.status_color)
+
+
+class Directory:
+    def __init__(self, path):
+        self.path = path
+        self.is_repository()
+        self.get_files()
+        self.print_dir_status()
+
+    def is_repository(self):
+        try:
+            out = subprocess.check_output(
+                    "git rev-parse --git-dir",
+                    stderr=subprocess.STDOUT,
+                    shell=True)
+        except subprocess.CalledProcessError as e:
+            raise ValueError("This is not a git repository")
+
+    def get_files(self):
+        path = self.path
+        self.files = [File(os.path.join(path, f)) for f in os.listdir(path) if
+                      os.path.isfile(os.path.join(path, f))]
+
+    def print_dir_status(self):
+        print("T M : File Name")
+        for f in self.files:
+            f.print_status()
+
+if __name__ == "__main__":
+    path = "."
+    Directory(path)
