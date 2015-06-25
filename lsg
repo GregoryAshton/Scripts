@@ -78,9 +78,12 @@ class Directory:
                       os.path.isfile(os.path.join(path, f))]
 
     def print_dir_status(self):
-        print("T M : File Name")
-        for f in self.files:
-            f.print_status()
+        print("\nT M : File Name")
+        colors = ['blue', 'green', 'red']
+        for color in colors:
+            for f in self.files:
+                if f.status_color == color:
+                    f.print_status()
 
 if __name__ == "__main__":
     path = "."
