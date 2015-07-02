@@ -1,0 +1,66 @@
+#!/usr/bin/python
+
+""" Find figs based on includegraphics in tex docs and prints the file names"""
+
+import argparse
+from termcolor import colored
+import glob
+
+
+def print_elements(lines, file, splitter):
+    parts = lines.split(splitter)
+    elements = []
+    for p in parts[1:]:
+        elements.append(p[1+p.find("{"): p.find("}")])
+
+    elements = sorted(elements, key=lambda s: s.lower())
+
+    header = "Printing {} elements in {}:".format(splitter, file)
+    print(colored(header, "red"))
+    for f in elements:
+        print(colored(f, "blue"))
+
+parser = argparse.ArgumentParser(
+    description="Print various quantities from .tex files")
+parser.add_argument('file', help="The tex file(s) to use", nargs="*")
+parser.add_argument("-f", "--figures", action="store_true",
+                    help="Print the figure names in the file")
+parser.add_argument("-l", "--labels", action="store_true",
+                    help="Print the labels in the file")
+parser.add_argument("-o", "--other", default=None, 
+                    help=("Print any arbitary latex element supplied after the"
+                          " flag"))
+args = parser.parse_args()
+
+# Getting the list of files and lines
+files_list = []
+lines_list = []
+if len(args.file) == 0:
+    # If no files supplied try and find some
+    possible_files = glob.glob("*tex")
+    for pf in possible_files:
+        with open(pf) as f:
+            lines = f.read()
+        if "begin{document}" in lines:
+            lines_list.append(lines)
+            files_list.append(pf)
+    if len(files_list) == 0:
+        mssg = ("No files supplied and none found, are you in the right "
+                "directory?")
+        raise ValueError(colored(mssg, "red"))
+else:
+    for file in args.file:
+        with open(file, "r") as f:
+            lines_list.append(f.read())
+            files_list.append(file)
+
+if args.figures:
+    for lines, file in zip(lines_list, files_list):
+        print_elements(lines, file, "includegraphics")
+
+if args.labels:
+    for lines, file in zip(lines_list, files_list):
+        print_elements(lines, file, "label")
+if args.other:
+    for lines, file in zip(lines_list, files_list):
+        print_elements(lines, file, args.other)
