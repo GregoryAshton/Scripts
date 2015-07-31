@@ -60,7 +60,7 @@ class File:
             self.status_color = status_matrix[self.status[0]][self.status[1]]
 
     def print_status(self):
-        string = "{} : {}".format(self.status_string, self.file_name)
+        string = "    {}".format(self.file_name)
         print colored(string, self.status_color)
 
 
@@ -89,9 +89,13 @@ class Directory:
                               "git ls-files -d", shell=True).split("\n")[:-1]]
 
     def print_dir_status(self):
-        print("\nT M : File Name")
         colors = ['blue', 'green', 'red']
-        for color in colors:
+        stati = ["Tracked and modified:",
+                 "Tracked not modified:",
+                 "Not tracked:"]
+
+        for color, state  in zip(colors, stati):
+            print colored(state, color)
             for f in self.files:
                 if f.status_color == color:
                     f.print_status()
