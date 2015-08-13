@@ -7,7 +7,7 @@ from termcolor import colored
 import glob
 
 
-def print_elements(lines, file, splitter, alphabetic=False):
+def print_elements(lines, file, splitter, alphabetic=False, pre=""):
     parts = lines.split(splitter)
     elements = []
     for p in parts[1:]:
@@ -18,7 +18,8 @@ def print_elements(lines, file, splitter, alphabetic=False):
     header = "Printing {} elements in {}:".format(splitter, file)
     print(colored(header, "red"))
     for f in elements:
-        print(colored(f, "blue"))
+        if pre in f:
+            print(colored(f, "blue"))
 
 parser = argparse.ArgumentParser(
     description="Print various quantities from .tex files")
@@ -32,6 +33,8 @@ parser.add_argument("-o", "--other", default=None,
                           " flag"))
 parser.add_argument("-a", "--alphabetic", action="store_true",
                     help=("Print the results alphabetically"))
+parser.add_argument("-p", "--pre",
+                    help=("Print only elements containing this string"))
 args = parser.parse_args()
 
 # Getting the list of files and lines
@@ -58,11 +61,12 @@ else:
 
 if args.figures:
     for lines, file in zip(lines_list, files_list):
-        print_elements(lines, file, "includegraphics", args.alphabetic)
-
+        print_elements(lines, file, "includegraphics",
+                       alphabetic=args.alphabetic)
 if args.labels:
     for lines, file in zip(lines_list, files_list):
-        print_elements(lines, file, "label", args.alphabetic)
+        print_elements(lines, file, "label", alphabetic=args.alphabetic,
+                       pre=args.pre)
 if args.other:
     for lines, file in zip(lines_list, files_list):
         print_elements(lines, file, args.other, args.alphabetic)
