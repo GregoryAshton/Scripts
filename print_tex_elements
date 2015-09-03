@@ -18,7 +18,9 @@ def print_elements(lines, file, splitter, alphabetic=False, pre=""):
     header = "Printing {} elements in {}:".format(splitter, file)
     print(colored(header, "red"))
     for f in elements:
-        if pre in f:
+        if pre is None:
+            print(colored(f, "blue"))
+        elif pre in f:
             print(colored(f, "blue"))
 
 parser = argparse.ArgumentParser(
