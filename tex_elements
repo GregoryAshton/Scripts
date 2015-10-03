@@ -1,13 +1,15 @@
 #!/usr/bin/python
 
-""" Find figs based on includegraphics in tex docs and prints the file names"""
+""" 
+
+CLT to print labels and figure names in a latex document"""
 
 import argparse
 from termcolor import colored
 import glob
 
 
-def print_elements(lines, file, splitter, alphabetic=False, pre=""):
+def print_elements(lines, file, splitter, alphabetic=False, containing=""):
     parts = lines.split(splitter)
     elements = []
     for p in parts[1:]:
@@ -18,14 +20,14 @@ def print_elements(lines, file, splitter, alphabetic=False, pre=""):
     header = "Printing {} elements in {}:".format(splitter, file)
     print(colored(header, "red"))
     for f in elements:
-        if pre is None:
+        if containing is None:
             print(colored(f, "blue"))
-        elif pre in f:
+        elif containing in f:
             print(colored(f, "blue"))
 
 parser = argparse.ArgumentParser(
     description="Print various quantities from .tex files")
-parser.add_argument('file', help="The tex file(s) to use", nargs="*")
+parser.add_argument('--file', help="The tex file(s) to use", nargs=1)
 parser.add_argument("-f", "--figures", action="store_true",
                     help="Print the figure names in the file")
 parser.add_argument("-l", "--labels", action="store_true",
@@ -35,14 +37,14 @@ parser.add_argument("-o", "--other", default=None,
                           " flag"))
 parser.add_argument("-a", "--alphabetic", action="store_true",
                     help=("Print the results alphabetically"))
-parser.add_argument("-p", "--pre",
+parser.add_argument("-c", "--containing", type=str,
                     help=("Print only elements containing this string"))
 args = parser.parse_args()
 
 # Getting the list of files and lines
 files_list = []
 lines_list = []
-if len(args.file) == 0:
+if args.file is None:
     # If no files supplied try and find some
     possible_files = glob.glob("*tex")
     for pf in possible_files:
@@ -66,9 +68,11 @@ if args.figures:
         print_elements(lines, file, "includegraphics",
                        alphabetic=args.alphabetic)
 if args.labels:
+    if args.containing is None:
+        args.containing = args.labels
     for lines, file in zip(lines_list, files_list):
         print_elements(lines, file, "label", alphabetic=args.alphabetic,
-                       pre=args.pre)
+                       containing=args.containing)
 if args.other:
     for lines, file in zip(lines_list, files_list):
         print_elements(lines, file, args.other, args.alphabetic)
