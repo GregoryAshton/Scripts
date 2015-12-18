@@ -11,7 +11,8 @@ from termcolor import colored
 import glob
 
 
-def print_elements(lines, file, splitter, alphabetic=False, containing=""):
+def print_elements(lines, file, splitter, alphabetic=False, containing="",
+                   repeated_items="remove"):
     parts = lines.split(splitter)
     elements = []
     for p in parts[1:]:
@@ -22,9 +23,7 @@ def print_elements(lines, file, splitter, alphabetic=False, containing=""):
     header = "Printing {} elements in {}:".format(splitter, file)
     print(colored(header, "red"))
     for f in elements:
-        if containing in [None, "all"]:
-            print(colored(f, "blue"))
-        elif containing in f:
+        if containing in [None, "all"] or containing in f:
             print(colored(f, "blue"))
 
 parser = argparse.ArgumentParser(
