@@ -39,11 +39,11 @@ def print_elements(lines, file, splitter, alphabetic=False, containing="",
     for f in elements:
         if containing in [None, "all"] or containing in f:
             ln = get_line_number(f, lines)
-            f = "{}-> {}".format(ln, f)
+            ln_f = "{}-> {}".format(ln, f)
             if repeated_elements == "highlight" and count_of_repeated_elements[f] > 1:
-                print(colored(f, "blue", attrs=["underline"]))
+                print(colored(ln_f, "blue", attrs=["underline"]))
             else:
-                print(colored(f, "blue"))
+                print(colored(ln_f, "blue"))
 
 parser = argparse.ArgumentParser(
     description="Print various quantities from .tex files")
