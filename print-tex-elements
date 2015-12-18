@@ -9,10 +9,11 @@ CLT to print labels and figure names in a latex document
 import argparse
 from termcolor import colored
 import glob
+from collections import Counter
 
 
 def print_elements(lines, file, splitter, alphabetic=False, containing="",
-                   repeated_items="remove"):
+                   repeated_elements=""):
     parts = lines.split(splitter)
     elements = []
     for p in parts[1:]:
@@ -20,11 +21,19 @@ def print_elements(lines, file, splitter, alphabetic=False, containing="",
     if alphabetic:
         elements = sorted(elements, key=lambda s: s.lower())
 
+    count_of_repeated_elements = Counter(elements)
+
+    if repeated_elements == "remove":
+        elements = count_of_repeated_elements.keys()
+
     header = "Printing {} elements in {}:".format(splitter, file)
     print(colored(header, "red"))
     for f in elements:
         if containing in [None, "all"] or containing in f:
-            print(colored(f, "blue"))
+            if repeated_elements == "highlight" and count_of_repeated_elements[f] > 1:
+                print(colored(f, "blue", attrs=["underline"]))
+            else:
+                print(colored(f, "blue"))
 
 parser = argparse.ArgumentParser(
     description="Print various quantities from .tex files")
@@ -70,17 +79,19 @@ else:
 if args.figures:
     for lines, file in zip(lines_list, files_list):
         print_elements(lines, file, splitter="includegraphics",
-                       alphabetic=args.alphabetic)
+                       alphabetic=args.alphabetic,
+                       repeated_elements="highlight")
 
 if args.citations:
     for lines, file in zip(lines_list, files_list):
         print_elements(lines, file, splitter="cite",
+                       repeated_elements="remove",
                        alphabetic=args.alphabetic)
 
 if args.label:
     for lines, file in zip(lines_list, files_list):
         print_elements(lines, file, "label", alphabetic=args.alphabetic,
-                       containing=args.label)
+                       containing=args.label, repeated_elements="highlight")
 if args.other:
     for lines, file in zip(lines_list, files_list):
         print_elements(lines, file, args.other, args.alphabetic)
