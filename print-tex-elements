@@ -10,6 +10,14 @@ import argparse
 from termcolor import colored
 import glob
 from collections import Counter
+import numpy as np
+
+
+def get_line_number(string, lines):
+    split_lines = lines.split("\n")
+    bools = [string in l for l in split_lines]
+    idxs = [i for i, l in enumerate(split_lines) if string in l]
+    return str(idxs[0]).ljust(5)
 
 
 def print_elements(lines, file, splitter, alphabetic=False, containing="",
@@ -30,6 +38,8 @@ def print_elements(lines, file, splitter, alphabetic=False, containing="",
     print(colored(header, "red"))
     for f in elements:
         if containing in [None, "all"] or containing in f:
+            ln = get_line_number(f, lines)
+            f = "{}-> {}".format(ln, f)
             if repeated_elements == "highlight" and count_of_repeated_elements[f] > 1:
                 print(colored(f, "blue", attrs=["underline"]))
             else:
