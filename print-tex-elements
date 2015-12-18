@@ -1,8 +1,10 @@
 #!/usr/bin/python
 
-""" 
+"""
 
-CLT to print labels and figure names in a latex document"""
+CLT to print labels and figure names in a latex document
+
+"""
 
 import argparse
 from termcolor import colored
@@ -20,7 +22,7 @@ def print_elements(lines, file, splitter, alphabetic=False, containing=""):
     header = "Printing {} elements in {}:".format(splitter, file)
     print(colored(header, "red"))
     for f in elements:
-        if containing is None:
+        if containing in [None, "all"]:
             print(colored(f, "blue"))
         elif containing in f:
             print(colored(f, "blue"))
@@ -30,15 +32,18 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--file', help="The tex file(s) to use", nargs=1)
 parser.add_argument("-f", "--figures", action="store_true",
                     help="Print the figure names in the file")
-parser.add_argument("-l", "--labels", action="store_true",
-                    help="Print the labels in the file")
+parser.add_argument("-c", "--citations", action="store_true",
+                    help="Print the citation keys in the file")
+parser.add_argument("-l", "--label", const="all", nargs="?", type=str,
+                    metavar="label_key",
+                    help="""Print the \labels in the file. Optionally specify a
+                    label_key such as `fig` in \label{fig: blah blah} to only
+                    print the figure labels """)
 parser.add_argument("-o", "--other", default=None,
                     help=("Print any arbitary latex element supplied after the"
                           " flag"))
 parser.add_argument("-a", "--alphabetic", action="store_true",
                     help=("Print the results alphabetically"))
-parser.add_argument("-c", "--containing", type=str,
-                    help=("Print only elements containing this string"))
 args = parser.parse_args()
 
 # Getting the list of files and lines
@@ -65,14 +70,18 @@ else:
 
 if args.figures:
     for lines, file in zip(lines_list, files_list):
-        print_elements(lines, file, "includegraphics",
+        print_elements(lines, file, splitter="includegraphics",
                        alphabetic=args.alphabetic)
-if args.labels:
-    if args.containing is None:
-        args.containing = args.labels
+
+if args.citations:
+    for lines, file in zip(lines_list, files_list):
+        print_elements(lines, file, splitter="cite",
+                       alphabetic=args.alphabetic)
+
+if args.label:
     for lines, file in zip(lines_list, files_list):
         print_elements(lines, file, "label", alphabetic=args.alphabetic,
-                       containing=args.containing)
+                       containing=args.label)
 if args.other:
     for lines, file in zip(lines_list, files_list):
         print_elements(lines, file, args.other, args.alphabetic)
