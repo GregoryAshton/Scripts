@@ -88,19 +88,19 @@ else:
 
 if args.figures:
     for lines, file in zip(lines_list, files_list):
-        print_elements(lines, file, splitter="includegraphics",
+        print_elements(lines, file, splitter="\\includegraphics",
                        alphabetic=args.alphabetic,
                        repeated_elements="highlight")
 
 if args.citations:
     for lines, file in zip(lines_list, files_list):
-        print_elements(lines, file, splitter="cite",
+        print_elements(lines, file, splitter="\\cite",
                        repeated_elements="remove",
                        alphabetic=args.alphabetic)
 
 if args.label:
     for lines, file in zip(lines_list, files_list):
-        print_elements(lines, file, "label", alphabetic=args.alphabetic,
+        print_elements(lines, file, "\\label", alphabetic=args.alphabetic,
                        containing=args.label, repeated_elements="highlight")
 if args.other:
     for lines, file in zip(lines_list, files_list):
