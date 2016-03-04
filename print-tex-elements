@@ -30,7 +30,6 @@ def print_elements(lines, file, splitter, alphabetic=False, containing="",
         elements = sorted(elements, key=lambda s: s.lower())
 
     count_of_repeated_elements = Counter(elements)
-
     if repeated_elements == "remove":
         elements = count_of_repeated_elements.keys()
 
@@ -38,10 +37,14 @@ def print_elements(lines, file, splitter, alphabetic=False, containing="",
     print(colored(header, "red"))
     for f in elements:
         if containing in [None, "all"] or containing in f:
+            repeated_definition = count_of_repeated_elements[f]
+            times_used = lines.count(f) - 1
             ln = get_line_number(f, lines)
-            ln_f = "{}-> {}".format(ln, f)
-            if repeated_elements == "highlight" and count_of_repeated_elements[f] > 1:
+            ln_f = "{}-> {} ({})".format(ln, f, times_used)
+            if repeated_elements == "highlight" and repeated_definition > 1:
                 print(colored(ln_f, "blue", attrs=["underline"]))
+            elif repeated_elements == "highlight" and times_used == 0:
+                print(colored(ln_f, "green"))
             else:
                 print(colored(ln_f, "blue"))
 
