@@ -10,7 +10,16 @@ import argparse
 from termcolor import colored
 import glob
 from collections import Counter
-import numpy as np
+import fnmatch
+import os
+
+
+def get_files_recursively():
+    files = []
+    for root, dirnames, filenames in os.walk('.'):
+        for filename in fnmatch.filter(filenames, '*.tex'):
+            files.append(os.path.join(root, filename))
+    return files
 
 
 def get_line_number(string, lines):
@@ -33,7 +42,7 @@ def print_elements(lines, file, splitter, alphabetic=False, containing="",
     if repeated_elements == "remove":
         elements = count_of_repeated_elements.keys()
 
-    header = "Printing {} elements in {}:".format(splitter, file)
+    header = "Printing {} elements in: {}".format(splitter, file)
     print(colored(header, "red"))
     for f in elements:
         if containing in [None, "all"] or containing in f:
@@ -65,6 +74,10 @@ parser.add_argument("-o", "--other", default=None,
                           " flag"))
 parser.add_argument("-a", "--alphabetic", action="store_true",
                     help=("Print the results alphabetically"))
+parser.add_argument("-r", "--recursive", action="store_true",
+                    help=("Search for files recursively"))
+parser.add_argument("-T", "--together", action="store_true",
+                    help=("Print results for all files together"))
 args = parser.parse_args()
 
 # Getting the list of files and lines
@@ -72,7 +85,10 @@ files_list = []
 lines_list = []
 if args.file is None:
     # If no files supplied try and find some
-    possible_files = glob.glob("*tex")
+    if args.recursive:
+        possible_files = get_files_recursively()
+    else:
+        possible_files = glob.glob("*tex")
     for pf in possible_files:
         with open(pf) as f:
             lines = f.read()
@@ -88,6 +104,10 @@ else:
         with open(file, "r") as f:
             lines_list.append(f.read())
             files_list.append(file)
+
+if args.together:
+    files_list = [" & ".join(files_list)]
+    lines_list = [" ".join(lines_list)]
 
 if args.figures:
     for lines, file in zip(lines_list, files_list):
