@@ -74,7 +74,7 @@ parser.add_argument("-o", "--other", default=None,
                           " flag"))
 parser.add_argument("-a", "--alphabetic", action="store_true",
                     help=("Print the results alphabetically"))
-parser.add_argument("-r", "--recursive", action="store_true",
+parser.add_argument("-r", "--recursive", action="store_true", default=False,
                     help=("Search for files recursively"))
 parser.add_argument("-T", "--together", action="store_true",
                     help=("Print results for all files together"))
@@ -89,10 +89,10 @@ if args.file is None:
         possible_files = get_files_recursively()
     else:
         possible_files = glob.glob("*tex")
+
     for pf in possible_files:
         with open(pf) as f:
             lines = f.read()
-        if "begin{document}" in lines:
             lines_list.append(lines)
             files_list.append(pf)
     if len(files_list) == 0:
