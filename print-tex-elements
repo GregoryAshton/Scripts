@@ -26,11 +26,14 @@ def get_line_number(string, lines):
     split_lines = lines.split("\n")
     bools = [string in l for l in split_lines]
     idxs = [i for i, l in enumerate(split_lines) if string in l]
-    return str(idxs[0]).ljust(5)
+    if len(idxs) > 1:
+        return str(idxs[0]).ljust(5)
+    else:
+        return "NA"
 
 
 def print_elements(lines, file, splitter, alphabetic=False, containing="",
-                   repeated_elements=""):
+                   repeated_elements="", file_at_end=True):
     parts = lines.split(splitter)
     elements = []
     for p in parts[1:]:
@@ -50,6 +53,8 @@ def print_elements(lines, file, splitter, alphabetic=False, containing="",
             times_used = lines.count(f) - 1
             ln = get_line_number(f, lines)
             ln_f = "{}-> {} ({})".format(ln, f, times_used)
+            if file_at_end:
+                ln_f = ln_f + " in {}".format(file)
             if repeated_elements == "highlight" and repeated_definition > 1:
                 print(colored(ln_f, "blue", attrs=["underline"]))
             elif repeated_elements == "highlight" and times_used == 0:
@@ -78,6 +83,8 @@ parser.add_argument("-r", "--recursive", action="store_true", default=False,
                     help=("Search for files recursively"))
 parser.add_argument("-T", "--together", action="store_true",
                     help=("Print results for all files together"))
+parser.add_argument("-e", "--fileatend", action="store_true", default=False,
+                    help=("If true, print the file on each line at the end"))
 args = parser.parse_args()
 
 # Getting the list of files and lines
@@ -113,18 +120,22 @@ if args.figures:
     for lines, file in zip(lines_list, files_list):
         print_elements(lines, file, splitter="\\includegraphics",
                        alphabetic=args.alphabetic,
-                       repeated_elements="highlight")
+                       repeated_elements="highlight",
+                       file_at_end=args.fileatend)
 
 if args.citations:
     for lines, file in zip(lines_list, files_list):
         print_elements(lines, file, splitter="\\cite",
                        repeated_elements="remove",
-                       alphabetic=args.alphabetic)
+                       alphabetic=args.alphabetic,
+                       file_at_end=args.fileatend)
 
 if args.label:
     for lines, file in zip(lines_list, files_list):
         print_elements(lines, file, "\\label", alphabetic=args.alphabetic,
-                       containing=args.label, repeated_elements="highlight")
+                       containing=args.label, repeated_elements="highlight",
+                       file_at_end=args.fileatend)
 if args.other:
     for lines, file in zip(lines_list, files_list):
-        print_elements(lines, file, args.other, args.alphabetic)
+        print_elements(lines, file, args.other, args.alphabetic,
+                       file_at_end=args.fileatend)
