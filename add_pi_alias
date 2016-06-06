@@ -1,0 +1,6 @@
+# Run with souce ./add_pi_alias
+
+IP="$(nmap -sP 192.168.0.1/24 | grep 'pi' | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}')"
+echo "${IP}"
+alias pi="ssh -X pi@${IP}"
+
