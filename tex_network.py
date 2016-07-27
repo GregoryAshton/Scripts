@@ -6,6 +6,7 @@ import argparse
 from termcolor import colored
 import glob
 import string
+import numpy as np
 
 
 def print_elements(lines, file, splitter, alphabetic=False):
@@ -57,60 +58,98 @@ else:
             lines_list.append(f.read())
             files_list.append(file)
 
+
+def add_node(ax, x, y, text, s=0.2, color="r"):
+    color = np.random.uniform(0, 1, 4)
+    circle = plt.Circle((x, y), s, alpha=0.6, color=color)
+    ax.add_artist(circle)
+    ax.annotate(text, (x, y), size=8)
+    return ax
+
+
+def plot_level(ax, x, y, dx, children):
+    n = len(children)
+    n = n + n % 2  # Make it even
+    yc = y - 1
+    xcs = x + np.linspace(-dx/2., dx/2., n)
+    xcs = xcs[np.argsort(np.abs(xcs))]  # Fill from center
+    children_pos = []
+    for xc, c in zip(xcs, children):
+        ax = add_node(ax, xc, yc, c)
+        children_pos.append((xc, yc))
+
+    return ax, children, children_pos
+
+
 def get_first_braces(text):
     return text[1+text.find("{"): text.find("}")]
 
-network = {}
+
 sections = lines.split("\section")[1:]
 
+sec_names = []
+subsec_names = []
+subsubsec_names = []
 
-for sec in sections:
-    sec_key = get_first_braces(sec)
-    network[sec_key] = {}
+for i, sec in enumerate(sections):
+    sec_names.append(get_first_braces(sec))
     subsections = sec.split("\subsection")
-    for subsec in subsections:
-        subsec_key = get_first_braces(subsec)
-        network[sec_key][subsec_key] = {}
-        subsubsections = subsec.split("\subsubsection")
-        for subsubsec in subsubsections:
-            subsubsec_key = get_first_braces(subsubsec)
-            network[sec_key][subsec_key][subsubsec_key] = {}
-            print "{}:{}:{}".format(sec_key, subsec_key, subsubsec_key)
-            L = len(subsubsec.split(r"\ref"))
-            network[sec_key][subsec_key][subsubsec_key] = L
+    for j, subsec in enumerate(subsections):
+        subsec_names.append(get_first_braces(subsec))
+
+        #subsubsections = subsec.split("\subsubsection")
+        #for k, subsubsec in enumerate(subsubsections):
+        #    subsubsec_key = get_first_braces(subsubsec)
+        #    network[sec_key][subsec_key][subsubsec_key] = {}
+        #    print "{}:{}:{}".format(sec_key, subsec_key, subsubsec_key)
+        #    L = len(subsubsec.split(r"\ref"))
+        #    network[sec_key][subsec_key][subsubsec_key] = L
+
+print len(sec_names), len(subsec_names)
 
 import matplotlib.pyplot as plt
-import networkx as nx
+
+fig, ax = plt.subplots()
+
+x, y = 0, 0
 
 file_name = files_list[0]
-G = nx.DiGraph()
-G.add_node(file_name)
+ax = add_node(ax, x, y, file_name)
 
 SECTIONS = ["I", "II", "III", "IV", "V", "VI", "VII"]
 SUBSECTIONS = list(string.ascii_uppercase)
 
-for i, (sec_name, subsec) in enumerate(network.iteritems()):
-    sec_name = SECTIONS[i]
-    G.add_node(sec_name)
-    G.add_edge(file_name, sec_name)
-    for j, (subsec_name, subsubsec) in enumerate(subsec.iteritems()):
-        subsec_name = SUBSECTIONS[j]
-        parent_name = sec_name
-        child_name = "{}:{}".format(sec_name, subsec_name)
-        G.add_node(child_name)
-        G.add_edge(parent_name, child_name)
-        for k, (subsubsec_name, L) in enumerate(subsubsec.iteritems()):
-            subsubsec_name = str(k)
-            grandparent_name = sec_name
-            parent_name = child_name
-            child_name = "{}:{}:{}".format(grandparent_name, parent_name, subsubsec_name)
-            G.add_node(child_name)
-            G.add_edge(parent_name, child_name)
+ax, children, children_pos = plot_level(ax, x, y, 10, network.keys())
+for c, cp in zip(children, children_pos):
+    print cp
+    ax, children, children_pos = plot_level(ax, cp[0], cp[1], 1, network[c].keys())
 
+#n = len(network)
+#y -= 1
+#x = - 0.5*(n+1)
+#for i, (sec_name, subsec) in enumerate(network.iteritems()):
+#    sec_name = SECTIONS[i]
+#    x += 1
+#    ax = add_node(ax, x, y, file_name)
+#    n = len(network)
+#    y -= 1
+#    x = - 0.5*(n+1)
+#
+#    for j, (subsec_name, subsubsec) in enumerate(subsec.iteritems()):
+#        subsec_name = SUBSECTIONS[j]
+#        parent_name = sec_name
+    #    child_name = "{}:{}".format(sec_name, subsec_name)
+    #    G.add_node(child_name)
+    #    G.add_edge(parent_name, child_name)
+    #    for k, (subsubsec_name, L) in enumerate(subsubsec.iteritems()):
+    #        subsubsec_name = str(k)
+    #        grandparent_name = sec_name
+    #        parent_name = child_name
+    #        child_name = "{}:{}:{}".format(grandparent_name, parent_name, subsubsec_name)
+    #        G.add_node(child_name)
+    #        G.add_edge(parent_name, child_name)
 
-#nx.write_dot(G, 'test.dot')
-pos = nx.graphviz_layout(G, prog='dot')
-nx.draw(G,pos, with_labels=True, arrows=True)
-
+ax.set_xlim(-5, 5)
+ax.set_ylim(-5, 5)
 plt.show()
 
